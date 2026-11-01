@@ -1,0 +1,13 @@
+{
+  "name": "Datadog build metrics",
+  "summary": "把构建指标（jenkins.job.duration / completed / waiting）与一条构建事件发到 Datadog HTTP API，key 走凭据，2xx 但报文被拒也判失败。",
+  "author": "hummerstudio",
+  "license": "MIT",
+  "tags": [
+    "official",
+    "monitoring",
+    "datadog",
+    "metrics"
+  ],
+  "homepage": "https://github.com/hummerstudio/jenkins-atom-datadog-metrics"
+}

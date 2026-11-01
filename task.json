@@ -1,0 +1,226 @@
+{
+  "atomCode": "datadog-metrics",
+  "name": "Datadog build metrics",
+  "version": "1.0.0",
+  "description": "把本次构建的指标（jenkins.job.*）与一条事件发给 Datadog HTTP API（v1/series + v1/events，可选 v2/series），API key 走凭据；HTTP 2xx 但响应体带 errors 时判失败。",
+  "execution": {
+    "packagePath": "datadog-metrics.jar",
+    "language": "java",
+    "target": "$atom_java_path -cp datadog-metrics.jar com.jenkinschina.atom.sdk.AtomRunner"
+  },
+  "input": {
+    "site": {
+      "label": "Datadog 站点（us1 / us3 / us5 / eu / ap1 / ap2 / uk1 / gov）",
+      "type": "vuex-input",
+      "default": "datadoghq.com",
+      "description": "决定 API 主机 api.<site>；私有代理或测试端点用 apiUrl 覆盖"
+    },
+    "apiUrl": {
+      "label": "API 根地址（留空按 site 拼，如 https://api.datadoghq.com/api）",
+      "type": "vuex-input",
+      "default": ""
+    },
+    "apiVersion": {
+      "label": "指标 API 版本（auto / 1 / 2；auto 即 1，与官方 Jenkins 插件一致）",
+      "type": "vuex-input",
+      "default": "auto",
+      "description": "2 走 v2/series（points 是对象、type 是整数）；事件始终走 v1/events，因为 v2 事件需要 APP key"
+    },
+    "metricPrefix": {
+      "label": "内置指标前缀（默认 jenkins.job，留空则不带前缀）",
+      "type": "vuex-input",
+      "default": "jenkins.job"
+    },
+    "tags": {
+      "label": "额外标签（每行 key:value，Datadog 标签一律 key:value）",
+      "type": "textarea",
+      "default": ""
+    },
+    "customMetrics": {
+      "label": "额外指标（每行 name=value[:gauge|count|rate]，原样发送，不加前缀）",
+      "type": "textarea",
+      "default": ""
+    },
+    "eventTitle": {
+      "label": "事件标题（留空按官方插件格式 Job <job> build #<n> <result> on <host>）",
+      "type": "vuex-input",
+      "default": ""
+    },
+    "eventText": {
+      "label": "事件正文（留空按构建事实生成；支持 ${BUILD_NUMBER} 等变量）",
+      "type": "textarea",
+      "default": ""
+    },
+    "priority": {
+      "label": "事件优先级（auto / low / normal；auto：成功 low，其余 normal）",
+      "type": "vuex-input",
+      "default": "auto"
+    },
+    "alertType": {
+      "label": "事件类型（auto / success / error / warning / info；auto：SUCCESS→success，FAILURE→error，其余 warning）",
+      "type": "vuex-input",
+      "default": "auto"
+    },
+    "aggregationKey": {
+      "label": "事件聚合键（留空取 job 名）",
+      "type": "vuex-input",
+      "default": ""
+    },
+    "host": {
+      "label": "host（指标/事件的 host，留空取节点名）",
+      "type": "vuex-input",
+      "default": ""
+    },
+    "jenkinsUrl": {
+      "label": "Jenkins 根地址（默认 ${JENKINS_URL}，作为 jenkins_url 标签）",
+      "type": "vuex-input",
+      "default": "${JENKINS_URL}"
+    },
+    "jobName": {
+      "label": "Job 名（默认 ${JOB_NAME}；有构建上下文时以构建事实为准）",
+      "type": "vuex-input",
+      "default": "${JOB_NAME}"
+    },
+    "buildNumber": {
+      "label": "构建号（默认 ${BUILD_NUMBER}）",
+      "type": "vuex-input",
+      "default": "${BUILD_NUMBER}"
+    },
+    "buildResult": {
+      "label": "构建结果（默认 ${BUILD_STATUS}；为空时取构建事实）",
+      "type": "vuex-input",
+      "default": "${BUILD_STATUS}"
+    },
+    "buildUrl": {
+      "label": "构建 URL（默认 ${BUILD_URL}）",
+      "type": "vuex-input",
+      "default": "${BUILD_URL}"
+    },
+    "branchName": {
+      "label": "分支（默认 ${BRANCH_NAME}）",
+      "type": "vuex-input",
+      "default": "${BRANCH_NAME}"
+    },
+    "agentName": {
+      "label": "节点名（默认 ${NODE_NAME}）",
+      "type": "vuex-input",
+      "default": "${NODE_NAME}"
+    },
+    "userId": {
+      "label": "触发用户（user_id 标签，可空）",
+      "type": "vuex-input",
+      "default": ""
+    },
+    "buildDurationMs": {
+      "label": "构建耗时（毫秒；留空取构建事实，再退化为 now - buildStartedMs）",
+      "type": "vuex-input",
+      "default": ""
+    },
+    "pauseDurationMs": {
+      "label": "暂停时长（毫秒；给了才发 build_duration，否则不臆造）",
+      "type": "vuex-input",
+      "default": ""
+    },
+    "queueDurationMs": {
+      "label": "排队时长（毫秒；给了才发 waiting）",
+      "type": "vuex-input",
+      "default": ""
+    },
+    "timestampMs": {
+      "label": "点/事件时间戳（epoch 毫秒；留空用构建结束时间或当前时间）",
+      "type": "vuex-input",
+      "default": ""
+    },
+    "sendMetrics": {
+      "label": "发送指标",
+      "type": "boolean",
+      "default": "true"
+    },
+    "sendEvent": {
+      "label": "发送事件",
+      "type": "boolean",
+      "default": "true"
+    },
+    "dryRun": {
+      "label": "只生成报文不发请求（true/false）",
+      "type": "vuex-input",
+      "default": ""
+    },
+    "failOnError": {
+      "label": "Datadog 拒绝时判失败（默认 true）",
+      "type": "vuex-input",
+      "default": "true"
+    },
+    "timeoutSeconds": {
+      "label": "超时（秒）",
+      "type": "vuex-input",
+      "default": "30"
+    }
+  },
+  "output": {
+    "usedSite": {
+      "type": "string",
+      "description": "使用的站点"
+    },
+    "usedApiVersion": {
+      "type": "string",
+      "description": "指标实际使用的 API 版本（1 / 2）"
+    },
+    "metricsEndpoint": {
+      "type": "string",
+      "description": "指标请求的完整 URL（没发则为空）"
+    },
+    "eventEndpoint": {
+      "type": "string",
+      "description": "事件请求的完整 URL"
+    },
+    "httpStatus": {
+      "type": "string",
+      "description": "指标请求的 HTTP 状态"
+    },
+    "eventHttpStatus": {
+      "type": "string",
+      "description": "事件请求的 HTTP 状态"
+    },
+    "metricsAccepted": {
+      "type": "string",
+      "description": "指标是否被接受（true / false / skipped）"
+    },
+    "eventsAccepted": {
+      "type": "string",
+      "description": "事件是否被接受（true / false / skipped）"
+    },
+    "seriesCount": {
+      "type": "string",
+      "description": "发出的时间序列条数"
+    },
+    "pointTimestampSeconds": {
+      "type": "string",
+      "description": "点/事件时间戳（epoch 秒）"
+    },
+    "tagsUsed": {
+      "type": "string",
+      "description": "实际附带的标签（逗号分隔）"
+    },
+    "metricsPayload": {
+      "type": "string",
+      "description": "指标请求体（原样，dry run 的唯一产物）"
+    },
+    "eventPayload": {
+      "type": "string",
+      "description": "事件请求体（原样）"
+    }
+  },
+  "x-jenkins": {
+    "protocol": "jenkins-1",
+    "requires": {
+      "runner": ">=0.4.0"
+    },
+    "context": [
+      "build"
+    ],
+    "secrets": {
+      "apiKey": ""
+    }
+  }
+}
