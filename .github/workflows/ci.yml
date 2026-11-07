@@ -37,4 +37,4 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: datadog-metrics-atom
-          path: atom/dist/datadog-metrics/
+          path: atom/target/dist/datadog-metrics/
