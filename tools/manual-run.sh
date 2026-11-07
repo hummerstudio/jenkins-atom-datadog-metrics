@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 # One manual end-to-end run that prints the bytes that actually left the atom (used while building the atom; the
-# repeatable checks live in tools/smoke.sh).
+# repeatable checks live in src/test/java/atom/DatadogMetricsIT.java).
 set -euo pipefail
 cd "$(dirname "$0")/.."
 export JAVA_HOME="${JAVA_HOME:-$HOME/tools/jdk-21.0.12.1+1/Contents/Home}"
 tmp="$(mktemp -d)"
-jar="$(cd dist/datadog-metrics && pwd)/datadog-metrics.jar"
+jar="$(cd target/dist/datadog-metrics && pwd)/datadog-metrics.jar"
 port="$(python3 -c 'import socket;s=socket.socket();s.bind(("127.0.0.1",0));print(s.getsockname()[1]);s.close()')"
 python3 tools/fake_datadog.py "$port" "$tmp/req.jsonl" k-123 &
 srv=$!

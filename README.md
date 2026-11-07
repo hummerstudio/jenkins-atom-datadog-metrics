@@ -10,11 +10,10 @@ Jenkins 插件（10.0.0）实际发出的形状构造。
 ## 构建与自测
 
 ```bash
-./build.sh          # 用 ../jenkins-atom-sdk 最新 jar 打包 dist/datadog-metrics/datadog-metrics.jar
-./tools/smoke.sh    # 起本地假 Datadog，断言报文形状 + 鉴权头；不联网
+mvn verify    # 打包 dist/datadog-metrics/ 并跑 src/test/java/atom/DatadogMetricsIT.java（起本地假 intake，不联网）
 ```
 
-`tools/smoke.sh` 覆盖：v1 series + event 的完整字段、v2/series 的对象点与整数 type、202 带 errors 的拒绝、
+`DatadogMetricsIT` 覆盖：v1 series + event 的完整字段、v2/series 的对象点与整数 type、202 带 errors 的拒绝、
 403 坏 key、503、连不上、缺 key 不发请求、dry run、坏输入、构建上下文（`atom_build_json`）优先于入参。
 假服务端自己也会校验文档规定的形状（header、points 类型、事件必填字段），所以形状错了即使断言忘了也会被判 400。
 
