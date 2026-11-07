@@ -420,6 +420,11 @@ public final class DatadogMetricsAtom implements AtomTask {
                     .POST(HttpRequest.BodyPublishers.ofString(body, StandardCharsets.UTF_8))
                     .build();
             response = client.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            long elapsed = System.currentTimeMillis() - started;
+            String reason = e.getMessage() == null ? e.toString() : e.getMessage();
+            throw new TransportFailure(endpoint, reason, elapsed);
         } catch (Exception e) {
             long elapsed = System.currentTimeMillis() - started;
             String reason = e.getMessage() == null ? e.toString() : e.getMessage();
