@@ -221,6 +221,7 @@
     ],
     "secrets": {
       "apiKey": ""
-    }
+    },
+    "category": "observability"
   }
 }
